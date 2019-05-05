@@ -1,9 +1,7 @@
-"use strict"
-
 class Profile {
-    constructor({ username, name: { firstname, lastname }, password}) {
+    constructor({ username, name: { firstName, lastName }, password}) {
         this.username = username;
-        this.name = {firstname, lastname};
+        this.name = {firstName, lastName};
         this.password = password;
     };
 
@@ -16,9 +14,9 @@ class Profile {
             },
             (err, data) => {
                 console.log (`Creating user ${this.username}`);
-                callback (err, data);
+                callback(err, data);
             }
-        ) 
+        ); 
     };
 
     performLogin(callback) {
@@ -29,30 +27,29 @@ class Profile {
             },
             (err, data) => {
                 console.log(`Authorizing user ${this.username}`);
-                callback (err, data);
+                callback(err, data);
             }
-        )
-
+        );
     };
 
     addMoney({currency, amount}, callback) {
         return ApiConnector.addMoney (
             {currency, amount},
             (err, data) => {
-                console.log(`Adding ${amount} of ${curency} to ${this.username}`);
-                callback (err, data);
+                console.log(`Adding ${amount} of ${currency} to ${this.username}`);
+                callback(err, data);
             }
-        )
+        );
     };
 
-    convertMoney({fromCurrency, toCurrency, targetAmount}, callback) {
+    convertMoney({fromCurrency, targetCurrency, targetAmount}, callback) {
         return ApiConnector.convertMoney (
-            {fromCurrency, toCurrency, targetAmount},
+            {fromCurrency, targetCurrency, targetAmount},
             (err, data) => {
-                console.log(`Converting ${fromCurrency} to ${targetAmount} ${toCurrency}`);
-                callback (err, data);
+                console.log(`Converting ${fromCurrency} to ${targetAmount} ${targetCurrency}`);
+                callback(err, data);
             }
-        )
+        );
     };
 
     transferMoney({to, amount}, callback) {
@@ -60,9 +57,9 @@ class Profile {
             {to, amount},
             (err, data) => {
                 console.log(`Transfering ${amount} to ${to}`);
-                callback (err, data);
+                callback(err, data);
             }
-        )
+        );
     }
 };
 
@@ -70,51 +67,100 @@ function getStocks(callback) {
     return ApiConnector.getStocks (
         (err, data) => {
             console.log (`Getting stock info`);
-            callback (err, data)
+            callback(err, data);
         }
-    )
+    );
 };
 
 
 function main() {
-    let user1 = new Profile ({
+    const user1 = new Profile({
         username: 'Ubivez', 
         name: {
-            firstname: 'Grigori', 
-            lastname: 'Zabelin'
+            firstName: 'Grigori', 
+            lastName: 'Zabelin'
         }, 
         password: '000000'
     });
     
-    let user2 = new Profile ({
+    const user2 = new Profile({
         username: 'Timur007', 
         name: {
-            firstname: 'Timur', 
-            lastname: 'Rodriges'
+            firstName: 'Timur', 
+            lastName: 'Rodriges'
         }, 
         password: '123456'
     });
     
-    const money = { currency: 'EUR', amount: 500000 };
+    const startCapital = { currency: 'EUR', amount: 1000000 };
 
     getStocks((err, data) => {
         if (err) {
             console.error('Error during getting stocks');
         }
-        const stocksInfo = data[data.length - 1]; 
-    });
+        const stocksInfo = data[0]; 
 
     user1.createUser (
         (err, data) => {
             if (err) {
                 console.log (`Failed to create user ${user1.username}`);
-
             } else {
                 console.log(`${user1.username} is created`);
-            }
-        }
-    );    
-};
+                user1.performLogin(
+                    (err, data) => {
+                        if (err) {
+                            console.log(`Failed to authorize user ${user1.username}`)
+                        } else {
+                            console.log(`${user1.username} is Authorized!`);
+                            
+                            user1.addMoney(startCapital, (err, data) => {
+                                if (err) {
+                                    console.log(`Failed to add money to ${user1.username}`)
+                                } else {
+                                    console.log(`Added ${startCapital.amount} ${startCapital.currency} to ${user1.username}`);
+                                    
+                                    const targetAmount = stocksInfo['EUR_NETCOIN'] * startCapital.amount;
+                                    user1.convertMoney({
+                                        fromCurrency: startCapital.currency, 
+                                        targetCurrency: 'NETCOIN',
+                                        targetAmount: targetAmount
+                                    },
+                                    (err, data) => {
+                                        if (err) {
+                                            console.log(`Failed to convert money`);
+                                        } else {
+                                            console.log(`Converted to coins ${user1.username}`);
+                                            
+                                            user2.createUser(
+                                                (err, data) => {
+                                                    if (err) {
+                                                        console.log(`Failed to create user ${user2.username}`);
+                                                    } else {
+                                                        console.log (`${user2.username} is created`);
+                                                        user1.transferMoney ({
+                                                            to: user2.username,
+                                                            amount: targetAmount,
+                                                            },
+                                                            (err, data) => {
+                                                                if (err) {
+                                                                    console.log(`Failed to transfer money`)
+                                                                } else {
+                                                                    console.log(`Transfering ${targetAmount} of netcoins to ${user2.username} \n${user2.username} got ${targetAmount} of netcoins`)
+                                                                }
+                                                            });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                }); 
+                            
+                            }
+                        });
+                    }
+                });
+        });
+}
 
 main();
 
