@@ -1,13 +1,13 @@
 "use strict"
 
 class Profile {
-    constructor({ username, name: { firstName, lastName }, password}) {
+    constructor({ username, name: { firstname, lastname }, password}) {
         this.username = username;
         this.name = {firstname, lastname};
         this.password = password;
     };
 
-    createUser (callback) {
+    createUser(callback) {
         return ApiConnector.createUser (
             {
             username: this.username,
@@ -21,7 +21,7 @@ class Profile {
         ) 
     };
 
-    performLogin (callback) {
+    performLogin(callback) {
         return ApiConnector.performLogin (
             {
                 username: this.username,
@@ -35,7 +35,7 @@ class Profile {
 
     };
 
-    addMoney ({currency, amount}, callback) {
+    addMoney({currency, amount}, callback) {
         return ApiConnector.addMoney (
             {currency, amount},
             (err, data) => {
@@ -45,7 +45,7 @@ class Profile {
         )
     };
 
-    convertMoney ({fromCurrency, toCurrency, targetAmount}, callback) {
+    convertMoney({fromCurrency, toCurrency, targetAmount}, callback) {
         return ApiConnector.convertMoney (
             {fromCurrency, toCurrency, targetAmount},
             (err, data) => {
@@ -55,7 +55,7 @@ class Profile {
         )
     };
 
-    transferMoney ({to, amount}, callback) {
+    transferMoney({to, amount}, callback) {
         return ApiConnector.transferMoney (
             {to, amount},
             (err, data) => {
@@ -66,7 +66,7 @@ class Profile {
     }
 };
 
-function getStocks (callback) {
+function getStocks(callback) {
     return ApiConnector.getStocks (
         (err, data) => {
             console.log (`Getting stock info`);
@@ -76,6 +76,24 @@ function getStocks (callback) {
 };
 
 
+function main() {
+    let user1 = new Profile ({
+        username: 'Ubivez', 
+        name: {
+            firstname: 'Grigori', 
+            lastname: 'Zabelin'
+        }, 
+        password: '000000'
+    });
+    
+    let user2 = new Profile ({
+        username: 'Timur007', 
+        name: {
+            firstname: 'Timur', 
+            lastname: 'Rodriges'
+        }, 
+        password: '123456'
+    });
     
     const money = { currency: 'EUR', amount: 500000 };
 
@@ -83,8 +101,21 @@ function getStocks (callback) {
         if (err) {
             console.error('Error during getting stocks');
         }
-        const stocksInfo = data[0];
-        console.log (stocksInfo);
+        const stocksInfo = data[data.length - 1]; 
     });
+
+    user1.createUser (
+        (err, data) => {
+            if (err) {
+                console.log (`Failed to create user ${user1.username}`);
+
+            } else {
+                console.log(`${user1.username} is created`);
+            }
+        }
+    );    
+};
+
+main();
 
     
